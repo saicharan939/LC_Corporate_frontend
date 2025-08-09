@@ -5,7 +5,7 @@ import axios from 'axios';
 
 // --- Configuration ---
 // It's better to use environment variables for the API URL in a real application.
-const API_URL = 'http://localhost:5000';
+const API_URL = 'lccorporatebackend-production.up.railway.app';
 
 // --- Main App Component ---
 // This component renders the header, navigation, and routes.
