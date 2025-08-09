@@ -1,17 +1,15 @@
+// App.js, Admin.js
+// This file contains the React components for the URL shortener's user interface.
+// It uses React Router for navigation and Axios for API requests.
 
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import axios from 'axios';
 
 // --- Configuration ---
-// It's better to use environment variables for the API URL in a real application.
-// In your React component file (App.js)
-
-// Use the environment variable for the production URL,
-// and fallback to the local server URL for development.
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 // --- Main App Component ---
-// This component renders the header, navigation, and routes.
 function App() {
   return (
     <Router>
@@ -40,7 +38,6 @@ function App() {
 }
 
 // --- URL Shortener Form Component ---
-// This component handles the submission of long URLs.
 function UrlShortenerForm() {
   const [longUrl, setLongUrl] = useState('');
   const [shortUrl, setShortUrl] = useState(null);
@@ -71,10 +68,9 @@ function UrlShortenerForm() {
   };
 
   const copyToClipboard = (text) => {
-    // Using the Clipboard API
     navigator.clipboard.writeText(text).then(() => {
         setCopySuccess('Copied!');
-        setTimeout(() => setCopySuccess(''), 2000); // Hide message after 2 seconds
+        setTimeout(() => setCopySuccess(''), 2000);
     }, (err) => {
         setCopySuccess('Failed to copy!');
         console.error('Could not copy text: ', err);
@@ -129,9 +125,10 @@ function UrlShortenerForm() {
   );
 }
 
+
 // --- Admin Page Component ---
-// This component displays a list of all shortened URLs and their click counts.
 function AdminPage() {
+  // Initialize state with an empty array to prevent .map() errors
   const [urls, setUrls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -140,7 +137,13 @@ function AdminPage() {
     const fetchUrls = async () => {
       try {
         const res = await axios.get(`${API_URL}/api/urls`);
-        setUrls(res.data);
+        // Ensure that the response data is an array before setting the state
+        if (Array.isArray(res.data)) {
+            setUrls(res.data);
+        } else {
+            // If the response is not an array, it's an unexpected format
+            setError('Received an invalid format from the server.');
+        }
       } catch (err) {
         setError('Failed to fetch URL list.');
         console.error(err);
@@ -150,7 +153,7 @@ function AdminPage() {
     };
 
     fetchUrls();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
   if (loading) return <p className="text-center text-lg">Loading analytics...</p>;
   if (error) return <p className="text-center text-lg text-red-400">{error}</p>;
@@ -168,17 +171,23 @@ function AdminPage() {
             </tr>
           </thead>
           <tbody>
-            {urls.map((url) => (
-              <tr key={url._id} className="border-b border-gray-700 hover:bg-gray-700/50 transition">
-                <td className="px-4 py-4 break-all text-gray-400">
-                    <a href={url.originalUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">{url.originalUrl}</a>
-                </td>
-                <td className="px-4 py-4">
-                    <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">{url.shortUrl}</a>
-                </td>
-                <td className="px-4 py-4 text-center text-xl font-bold">{url.clicks}</td>
-              </tr>
-            ))}
+            {urls.length > 0 ? (
+                urls.map((url) => (
+                  <tr key={url._id} className="border-b border-gray-700 hover:bg-gray-700/50 transition">
+                    <td className="px-4 py-4 break-all text-gray-400">
+                        <a href={url.originalUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">{url.originalUrl}</a>
+                    </td>
+                    <td className="px-4 py-4">
+                        <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">{url.shortUrl}</a>
+                    </td>
+                    <td className="px-4 py-4 text-center text-xl font-bold">{url.clicks}</td>
+                  </tr>
+                ))
+            ) : (
+                <tr>
+                    <td colSpan="3" className="text-center py-8 text-gray-500">No links have been shortened yet.</td>
+                </tr>
+            )}
           </tbody>
         </table>
       </div>
